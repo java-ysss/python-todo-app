@@ -1,0 +1,2 @@
+run|False
+buy|True

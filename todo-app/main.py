@@ -37,7 +37,7 @@ def input_number(message):#番号入力関数
 
 def main():
         
-        manager_data = Manager()
+        manager_data = Manager() #「Managerクラスから、Managerオブジェクト（実体）を作って、manager に入れてる」
         manager_data.load_tasks()
 
         while True:
@@ -46,9 +46,13 @@ def main():
             print("2 : 表示 ")
             print("3 : 削除 ")
             print("4 : 編集 ")
-            print("5 : 完了切り替え ")
-            print("6 : 完了済み削除 ")
-            print("7 : 終了 ")
+            print("5 : 検索 ")
+            print("6 : 完了切り替え ")
+            print("7 : 完了済み削除 ")
+            print("8 : 件数表示 ")
+            print("9 : 未完了だけ表示 ")
+            print("10 : 完了だけ表示 ")
+            print("11 : 終了 ")
 
 
             choice = input("選んでください >  ")
@@ -61,30 +65,44 @@ def main():
                 manager_data.show_tasks()
 
             elif choice == "3":
-                num = input_number("削除番号 > ")
-                manager_data.delete_task(num)
+                manager_data.delete_menu()
 
             elif choice == "4":
-                manager_data.show_tasks()
-                num = input_number("編集番号 > ")
-                new_name = input_task("新しいタスク名 > ")
-                manager_data.edit_task(num,new_name)
-
+                manager_data.edit_menu()
 
 
             elif choice == "5":
+                  
+                keyword = input_task("検索 > ")
+                manager_data.search_tasks(keyword)
+
+            elif choice == "6":
                   
                   manager_data.show_tasks()
                   num = input_number("完了切り替え番号 > ")
                   manager_data.toggle_task(num)
 
-
-            elif choice == "6":
-                 
-                manager_data.delete_done_tasks()
-            
+         
 
             elif choice == "7":
+                 
+                manager_data.delete_done_tasks()
+
+
+            elif choice == "8":
+                 
+                manager_data.show_summary()
+
+            elif choice == "9":
+                 
+                manager_data.show_undone_tasks()
+
+            elif choice == "10":
+                 
+                manager_data.show_done_tasks()
+            
+
+            elif choice == "11":
 
                 break
 

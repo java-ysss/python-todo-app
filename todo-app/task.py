@@ -11,7 +11,7 @@ class Task:
 
     def __str__(self):#➁
         status = "[x]" if self.done else "[ ]" # ➂ 条件がTrueなら左、Falseなら右 という構造
-        return f"{status}{self.name}" #➀
+        return f"{status} {self.name}" #➀
 
 #======================================-
 

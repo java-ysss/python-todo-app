@@ -1,0 +1,26 @@
+[
+  {
+    "name": "gym",
+    "done": false,
+    "priority": 2,
+    "deadline": "2026-06-07"
+  },
+  {
+    "name": "gym",
+    "done": false,
+    "priority": 2,
+    "deadline": "0601"
+  },
+  {
+    "name": "run",
+    "done": false,
+    "priority": 3,
+    "deadline": "2026-06-07"
+  },
+  {
+    "name": "buy",
+    "done": false,
+    "priority": 1,
+    "deadline": "2026-06-02"
+  }
+]

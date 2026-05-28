@@ -1,12 +1,16 @@
 import os
+import json #責任の分離 「どう保存するか」はManagerの仕事
+from datetime import date #日付モジュール
+
+#today = date.today() #今日の日付 クラスの外に置かないほうがいい
 
 BASE_DIR = os.path.dirname(__file__)
-FILE_PATH = os.path.join(BASE_DIR,"tasks.txt")
+FILE_PATH = os.path.join(BASE_DIR,"tasks.json")
 from task import Task #「task.py の Task クラス使わせて」
 
 class Manager: #タスク全体を管理する
 
-      def __init__(self):
+      def __init__(self): # __init__ は　「オブジェクトが作られた瞬間に自動で実行される初期化処理」
             self.tasks = [] # 最初は空 箱が作られるイメージ
 
 
@@ -14,39 +18,28 @@ class Manager: #タスク全体を管理する
             try:
                   with open(FILE_PATH,"r",encoding = "utf-8")as file:#"r"は読み込む
                   
-                        self.tasks = []
-
-                        for line in file: #1行ずつ取り出すって意味
-                        
-                              name,done = line.strip().split("|") #splitって何？ "勉強|False" を　["勉強", "False"] に分解する .strip()は余計な改行や空白を消す
-
-
-                              task = Task(name,done == "True")
-                              #task = {
-                              #      "name" : name,
-                              #      "done" : done == "True"
-                              #} (辞書)
-
-                              self.tasks.append(task)
+                       data = json.load(file) #ファイルの中身をPythonのリストとして読み込む。
+                       self.tasks = [Task(d["name"],d["done"],d["priority"],d["deadline"]) for d in data] #dataのリストを1つずつ取り出して、Taskオブジェクトに変換する
                         
             except FileNotFoundError:#初回起動時にはファイルがないから「ファイルないなら空リスト返す」
                   self.tasks = []
 
     
       def save_tasks(self): #self.tasks をファイルに保存する
-
-            #print("保存先 : ", os.path.abspath("tasks.txt"))　デバック用
             
             with open(FILE_PATH,"w",encoding = "utf-8")as file: #下に意味を書いてる
 
-                  for task in self.tasks: #タスクリストを1つずつ取り出す
-                        file.write(task.name + "|" + str(task.done) + "\n")
+                  data = [task.to_dict() for task in self.tasks] #[ 作る値 for 取り出す変数 in リスト ] ➄
+                  json.dump(data,file,ensure_ascii=False,indent=2) #dump は 「データをファイルに書き出す（吐き出す）」 という意味
+
+                  # for task in self.tasks: #タスクリストを1つずつ取り出す
+                  #       file.write(task.name + "|" + str(task.done) + "\n")
 
 
-      def add_task(self,name): #リストの末尾に要素を追加するメソッド
+      def add_task(self,name,priority,deadline): #リストの末尾に要素を追加するメソッド
         
-            task= Task(name)
-            self.tasks.append(task)
+            task = Task(name,priority=priority,deadline=deadline) # priority = priority をキーワード引数といいます。順番に関係なく名前で指定できるので、今回みたいに間に別の引数がある場合に使います。
+            self.tasks.append(task) #appendは一つしか引数を受け取れない
             self.save_tasks()
         
         #tasks.append(new_task)  #tasks というリストの末尾に new_task を追加するという意味
@@ -138,7 +131,19 @@ class Manager: #タスク全体を管理する
 
                   print(i,task) 
             print("======= TASK LIST ========")
-            
+
+
+      def show_tasks_by_priority(self): #優先度順に並べるメソッド
+            self.tasks.sort(key=lambda task: task.priority or 99) #➅
+            #sort(key=...) は「何を基準に並び替えるか」を指定します。
+
+            print("======= TASK LIST ========")
+
+            for i, task in enumerate(self.tasks,start=1):
+
+                  print(i,task) 
+            print("======= TASK LIST ========")
+           
 
 
       def search_tasks(self,keyword): #keyword は検索したい文字
@@ -200,6 +205,12 @@ class Manager: #タスク全体を管理する
                   except ValueError:
                         print("数字を入力してください")
 
+      def show_deadline_tasks(self):
+            today = date.today()
+            task_deadline = date.fromisoformat("2026-06-07")
+            diff = (deadline - today).days #今日から何日後か
+
+
       
 
 
@@ -242,3 +253,21 @@ class Manager: #タスク全体を管理する
 #   ↑ 条件を満たすたびに1を出す
 #                              ↑ doneがTrueのときだけ
 # → 1が何個出たか = 完了タスクの数  完了タスクを1個見つけるたびに「1」と書いた紙を積み上げて、最後に枚数を数える感じです。
+
+# ➄ data = []
+
+# for task in self.tasks:
+
+#     dic = {
+#         "name": task.name,
+#         "done": task.done
+#     }
+
+#     data.append(dic)
+
+#➅ # lambda task: task.priority or 99 は：
+      # self.tasks の中から task を1つずつ取り出して
+      # その task.priority の値を返す
+      # None のときは 99 を返す（一番後ろにしたいから）
+
+

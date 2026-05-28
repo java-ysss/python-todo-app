@@ -52,14 +52,23 @@ def main():
             print("8 : 件数表示 ")
             print("9 : 未完了だけ表示 ")
             print("10 : 完了だけ表示 ")
-            print("11 : 終了 ")
+            print("11 : 優先度順にタスクを表示 ")
+            print("12 : 終了 ")
 
 
             choice = input("選んでください >  ")
 
             if choice == "1":
                 task = input_task()
-                manager_data.add_task(task)
+                while True:
+                     priority = input_number("優先度(1:高 2:中 3:低) > ")
+                     if priority in [1,2,3]:
+                          break
+                     print("1~3で入力してください")
+
+                deadline = input("期限(例： 2026-06-01) > ").strip()
+
+                manager_data.add_task(task,priority,deadline)
 
             elif choice == "2":
                 manager_data.show_tasks()
@@ -82,7 +91,6 @@ def main():
                   num = input_number("完了切り替え番号 > ")
                   manager_data.toggle_task(num)
 
-         
 
             elif choice == "7":
                  
@@ -103,6 +111,10 @@ def main():
             
 
             elif choice == "11":
+
+                manager_data.show_tasks_by_priority()
+
+            elif choice == "12":
 
                 break
 

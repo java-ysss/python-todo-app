@@ -206,11 +206,32 @@ class Manager: #タスク全体を管理する
                         print("数字を入力してください")
 
       def show_deadline_tasks(self):
-            today = date.today()
-            task_deadline = date.fromisoformat("2026-06-07")
-            diff = (deadline - today).days #今日から何日後か
+            today = date.today() #今日の日付を date 型で取得して today に入れる。
+            found = False #締め切りが近いタスクが1つも見つかっていない」状態をフラグで管理。最初は False
 
+            print("=== 締め切りが近いタスク (7日以内) ===")
 
+            for i,task in enumerate(self.tasks,start=1):
+
+                  if task.deadline is None: #期限なしはスキップ
+                        continue #「次のループへ飛ぶ」
+
+                  task_deadline = date.fromisoformat(task.deadline) #文字列 →　date型に変換
+                                    #fromisoformat は ISO形式（YYYY-MM-DD）の文字列を date に変換するメソッド
+                  
+                  diff = (task_deadline - today).days #今日から何日後か
+                  #締め切り日から今日を引いて、何日後かを整数で取得。date 型同士の引き算は timedelta 型になるので、.days で日数だけ取り出す
+                  #print(f"デバック : {task.name} diff = {diff}")
+                  if 0 <= diff <= 7: #今日～７日以内
+                        print(i,task)
+                        found = True #found = True で「1件見つかった」と記録。
+
+                  elif diff < 0: #期限切れ
+                        print(f"期限切れ({abs(diff)}日経過)",task) #diff がマイナス = 締め切りが過ぎている。abs() は絶対値（マイナスを取り除く）なので、-3 → 3 になり「3日経過」と表示できる。
+                        found = True
+
+            if not found:
+                  print("締め切りが近いタスクはありません")
       
 
 

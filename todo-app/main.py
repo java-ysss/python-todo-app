@@ -1,6 +1,7 @@
 
 
 from manager import Manager #manager はファイル名　Managerはクラス名
+from datetime import date
 
 
 
@@ -29,6 +30,28 @@ def input_number(message):#番号入力関数
             except ValueError:
                   print("数字を入力してください")
 
+def input_deadline(): #期限を入力するメソッド
+     while True:
+        days = input("期限(例: 2026-06-01 / 空欄でスキップ) > ").strip()
+
+        if not days:
+             print("日付はありません")
+             return None 
+        
+        try:
+            date.fromisoformat(days)
+            return days #成功したら関数終了
+        
+        except ValueError:
+            print("もう一度入力してください")
+            # return を書かない → while True でもう一度聞く
+
+             
+
+               
+          
+
+
 
 
 #==============================================================
@@ -53,7 +76,8 @@ def main():
             print("9 : 未完了だけ表示 ")
             print("10 : 完了だけ表示 ")
             print("11 : 優先度順にタスクを表示 ")
-            print("12 : 終了 ")
+            print("12 : 締め切りが近いタスクを表示 ")
+            print("13 : 終了 ")
 
 
             choice = input("選んでください >  ")
@@ -66,7 +90,7 @@ def main():
                           break
                      print("1~3で入力してください")
 
-                deadline = input("期限(例： 2026-06-01) > ").strip()
+                deadline = input_deadline()
 
                 manager_data.add_task(task,priority,deadline)
 
@@ -115,6 +139,10 @@ def main():
                 manager_data.show_tasks_by_priority()
 
             elif choice == "12":
+
+                manager_data.show_deadline_tasks()
+
+            elif choice == "13":
 
                 break
 

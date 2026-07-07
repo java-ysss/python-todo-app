@@ -7,12 +7,81 @@ class Stock_Manager:
         self.stocks = []
         self.next_id = 1
 
+    
+    def import_stock_csv(self,file_path):#csv読み込み
+
+        with open(file_path,"r", encoding="utf-8")as file:
+            lines = file.readlines() #readlines() でファイルの中身を1行ずつリストにする
+
+        count = 0
+
+        errors = []
+
+        for line_num , line in enumerate(lines[1: ],start=2):
+            data = line.strip().split(",")
+            # .strip() → 行末の改行 \n を消す
+            # .split(",") → カンマで分割してリストに変換
+
+            #stock_id = int(data[0])
+
+            if len(data) != 3:
+                errors.append(f"{line_num}行目で不足している項目があります")
+                continue
+
+            name = data[0]
+
+            try:
+                quantity = int(data[1])
+                price = int(data[2])
+                #数値として使いたい id, quantity, price は str → int() で変換する
+            except ValueError:
+                errors.append(f"{line_num}行目 : 個数または価格が不正です({line.strip()})")
+                continue
+
+            is_valid , message = self.validate_stock(name,quantity,price) #falseならTrueになる
+            
+            if not is_valid:
+                print(message)
+                errors.append(f"{line_num}行目 : {message}")
+                continue #エラーがあっても止めない
+
+            if self.add_stock(name,quantity,price):
+            #self.stocks.append(stock)
+                count += 1
+
+        if self.stocks:
+            self.next_id = max(stock.id for stock in self.stocks) + 1
+
+        
+        return count , errors
+    
+
+    def export_stock_csv(self,file_path): #内部から→外部(csv書き出し)
+        #file_path は　仮引数名
+        with open(file_path,"w",encoding="utf-8")as file:
+            file.write("name,quantity,price\n") #これがヘッダー行
+
+
+            for stock in self.stocks:
+                line = f"{stock.name},{stock.quantity},{stock.price}" #1行分の文字列
+                file.write(line + "\n") #改行付きで書き込む
+
+
+
     def add_stock(self,name,quantity,price): #追加
+
+        is_valid,message = self.validate_stock(name,quantity,price) #チェックは必要
+
+        if not is_valid: #判定結果がFalseなら
+            print(message)
+            return False
 
         stock = Stock(self.next_id,name,quantity,price)
         
         self.stocks.append(stock)
         self.next_id += 1
+
+        return True
         
 
     def show_stock(self): #一覧
@@ -38,18 +107,24 @@ class Stock_Manager:
 
         stock = self.search_stock(stock_id)
 
-        if stock:
-            self.stocks.remove(stock)
-            return True
+        if stock is None:
+            return False
         
-        return False
+        self.stocks.remove(stock)
+        return True
 
 
     def edit_stock(self,stock_id,name,quantity,price): #編集
 
         stock = self.search_stock(stock_id)
 
-        if not stock:
+        if stock is None:
+            return False
+        
+        is_valid,message = self.validate_stock(name,quantity,price) #()の中に２つの真偽値　分ける必要がある
+
+        if not is_valid:
+            print(message)
             return False
         
         stock.name = name
@@ -57,6 +132,23 @@ class Stock_Manager:
         stock.price = price
 
         return True
+
+
+    def validate_stock(self,name,quantity,price): #「このデータ、使っても大丈夫?」をチェックする処理
+
+        if not name:
+            return False , "名前が空です"
+        
+        if quantity < 0:
+            return False , "個数を0未満にできません"
+        
+        if price < 0:
+            return False , "価格を0未満にできません"
+        
+
+        return True ,""
+    
+
     
     def sorted_stocks(self): #多い順
         
@@ -81,19 +173,89 @@ class Stock_Manager:
 
 
     def partial_search_stock(self,keyword): #部分一致検索
-       
-        result = []
+        # result = []
+        # for stock in self.stocks:
+        #     if keyword in stock.name:
+        #         result.append(stock)
+        # return result
+
+        return [stock for stock in self.stocks if keyword in stock.name]
     
+    
+    def total_quantity(self): #総在庫数
+
+        total = 0
+
         for stock in self.stocks:
 
-            if keyword in stock.name:
-                result.append(stock)
+            total += stock.quantity 
 
-        return result
+        return total
+        # def total_quantity(self):　sumを使うと短くなる(合計を求める関数)
+        #      return sum(stock.quantity for stock in self.stocks)
+
+ 
+    def total_price(self): #総在庫金額
+
+        total = 0
+
+        for stock in self.stocks:
+
+            total += stock.price
+
+        return total
 
     
+    def high_price(self): #最高額一つ
+
+        return max(self.stocks,key=lambda stock : stock.price) 
+                    #price が最大の Stockオブジェクトを返して
+
+        
+    def filter_by_price(self): #100円以上の商品だけ表示
+        # result = []
+        # for stock in self.stocks:
+        #     if stock.price >= 100:
+        #         result.append(stock) #ここはオブジェクトを返す
+        # return result
+
+        return [stock for stock in self.stocks if stock.price >= 100]
+    
+    
+    def fileter_stock(self,min_price,min_quantity): #最低価格、在庫検索
+    #     result = []
+    #     for stock in self.stocks:
+    #         if min_price <= stock.price and stock.quantity >= min_quantity:
+    #             result.append(stock)
+    #     return result
+
+        return [stock for stock in self.stocks if min_price <= stock.price and stock.quantity >= min_quantity]
+            # #「商品の価格が、ユーザーが入力した最低価格以上で、さらに商品の在庫数が、ユーザーが入力した最低在庫数以上なら」
+
+    
+
+    def filter_min_price(self): #100円以下の商品を表示
+        # result = []
+        # for stock in self.stocks:
+        #     if stock.price <= 100:
+        #         result.append(stock)
+        # return result
+
+        return [stock for stock in self.stocks if stock.price <= 100]
     
         
+
+    
+    def max_min_price(self,min_price,max_price):#価格上限下限検索
+        # result = []
+        # for stock in self.stocks:
+        #     if min_price <= stock.price and stock.price <= max_price:
+        #         result.append(stock)
+        # return result
+
+        return [stock for stock in self.stocks if min_price <= stock.price <= max_price]
+
+
 
     def save_stocks(self): #保存
 
@@ -162,4 +324,7 @@ class Stock_Manager:
 
 # sorted(リスト, key=lambda 仮の名前: 仮の名前.属性, reverse=True)
 
+# lambda 引数 : 返す値
+#          ↑        ↑
+#     受け取るもの  処理結果
 
